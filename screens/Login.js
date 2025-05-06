@@ -1,8 +1,7 @@
-// Login.js
 import React, { useState } from 'react';
 import { View, TextInput, Button, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import api from './api.js';  // <-- Importa la instancia configurada con ngrok
+import api from './api.js';  
 
 const Login = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -10,7 +9,6 @@ const Login = ({ navigation }) => {
 
   const handleLogin = async () => {
     try {
-      // Ahora usamos `api.post`, que ya tiene baseURL = ngrok
       const response = await api.post('/usuarios/login', {
         email,
         contraseña: password,

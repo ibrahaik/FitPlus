@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { View, FlatList, TextInput, Button, Text } from 'react-native';
 import { db } from './firebase';
 import { ref, onValue, push, serverTimestamp } from 'firebase/database';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ChatScreen({ route }) {
   const { communityId, userName, communityName } = route.params;
@@ -43,7 +44,7 @@ export default function ChatScreen({ route }) {
         alignItems: 'flex-end',
         marginVertical: 4,
       }}>
-        {/* Inicial en círculo */}
+        {}
         <View style={{
           backgroundColor: '#ddd',
           width: 32,
@@ -56,7 +57,7 @@ export default function ChatScreen({ route }) {
           <Text>{initial}</Text>
         </View>
 
-        {/* Burbuja de mensaje */}
+        {}
         <View style={{
           backgroundColor: isMe ? '#007aff' : '#e5e5ea',
           padding: 8,
@@ -73,6 +74,7 @@ export default function ChatScreen({ route }) {
   };
 
   return (
+    <SafeAreaView style={{ flex: 1 }}>
     <View style={{ flex: 1, padding: 8 }}>
       <FlatList
         ref={flatListRef}
@@ -91,5 +93,6 @@ export default function ChatScreen({ route }) {
         <Button title="Enviar" onPress={send} />
       </View>
     </View>
+    </SafeAreaView>
   );
 }
