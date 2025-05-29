@@ -1,4 +1,3 @@
-// CheckVideo.js
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -8,9 +7,10 @@ import {
   FlatList,
   Alert,
   Dimensions,
+  Button,
 } from 'react-native';
 import { Video } from 'expo-av';
-import axios from './api';
+import api from './api';
 
 const { width } = Dimensions.get('window');
 
@@ -18,21 +18,39 @@ const CheckVideo = () => {
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchVideos = async () => {
-      try {
-        const response = await axios.get('/videos');
-        setVideos(response.data);
-      } catch (err) {
-        console.error('Error al obtener videos:', err);
-        Alert.alert('Error', 'No se pudieron cargar los vídeos');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchVideos = async () => {
+    try {
+      const response = await api.get('/videos/pendientes');
+      setVideos(response.data);
+    } catch (err) {
+      console.error('Error al obtener videos:', err);
+      Alert.alert('Error', 'No se pudieron cargar los vídeos');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchVideos();
   }, []);
+
+  const handleAccion = async (usuario_id, reto_id, tipo) => {
+    try {
+      await api.put(`/videos/${tipo}/${usuario_id}/${reto_id}`);
+
+      if (tipo === 'aprobar') {
+        const retoRes = await api.get(`/retos/${reto_id}`);
+        const cantidad = retoRes.data.puntos; 
+        await api.post('/puntos', { usuario_id, cantidad });
+      }
+
+      Alert.alert('Éxito', `Video ${tipo === 'aprobar' ? 'aprobado' : 'suspendido'} correctamente`);
+      fetchVideos();
+    } catch (err) {
+      console.error(`Error al ${tipo} video:`, err);
+      Alert.alert('Error', `No se pudo ${tipo} el video`);
+    }
+  };
 
   if (loading) {
     return (
@@ -53,6 +71,22 @@ const CheckVideo = () => {
         useNativeControls
         resizeMode="contain"
       />
+      <View style={styles.buttonRow}>
+        <View style={styles.buttonContainer}>
+          <Button
+            title="Aprobar"
+            color="green"
+            onPress={() => handleAccion(item.usuario_id, item.reto_id, 'aprobar')}
+          />
+        </View>
+        <View style={styles.buttonContainer}>
+          <Button
+            title="Suspender"
+            color="red"
+            onPress={() => handleAccion(item.usuario_id, item.reto_id, 'suspender')}
+          />
+        </View>
+      </View>
     </View>
   );
 
@@ -102,6 +136,15 @@ const styles = StyleSheet.create({
     height: (width - 64) * 0.56,
     alignSelf: 'center',
     backgroundColor: '#000',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 12,
+  },
+  buttonContainer: {
+    flex: 1,
+    marginHorizontal: 5,
   },
 });
 

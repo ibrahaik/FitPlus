@@ -1,112 +1,208 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Button, Alert, ActivityIndicator } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
-import api from './api';
+"use client"
+
+import React, { useEffect, useState, useRef } from "react"
+import { SafeAreaView, StatusBar, DrawerLayoutAndroid, Platform, StyleSheet, BackHandler } from "react-native"
+import AsyncStorage from "@react-native-async-storage/async-storage"
+import { useNavigation, useFocusEffect } from "@react-navigation/native"
+import api from "./api"
+
+// Componentes modulares
+import HomeHeader from "../components/HomeHeader"
+import TabNavigator from "../components/TabNavigator"
+import DrawerMenu from "../components/DrawerMenu"
+import AdminContent from "../components/AdminContent"
+import HomeContent from "../components/HomeContent"
+import TiendaContent from "../components/TiendaContent"
+import LoadingScreen from "../components/LoadingScreen"
+import ErrorScreen from "../components/ErrorScreen"
 
 const Home = () => {
-  const [userData, setUserData] = useState(null);
-  const [loading, setLoading]   = useState(true);
-  const navigation = useNavigation();
+  const [userData, setUserData] = useState(null)
+  const [loadingUser, setLoadingUser] = useState(true)
+  const [points, setPoints] = useState(0)
+  const [loadingPoints, setLoadingPoints] = useState(false)
+  const [activeTab, setActiveTab] = useState("home")
+  const [refreshing, setRefreshing] = useState(false)
+  const [isDrawerMounted, setIsDrawerMounted] = useState(false)
+
+  const drawerRef = useRef(null)
+  const navigation = useNavigation()
+  const isFocused = useRef(false)
+
+  // Refrescar datos cuando la pantalla obtiene el foco
+  useFocusEffect(
+    React.useCallback(() => {
+      isFocused.current = true
+      refreshData()
+
+      // Importante: Reiniciar el estado del drawer cuando la pantalla obtiene el foco
+      if (Platform.OS === "android") {
+        // Pequeño retraso para asegurar que el componente esté completamente montado
+        setTimeout(() => {
+          setIsDrawerMounted(true)
+        }, 100)
+      }
+
+      // Manejar el botón de retroceso en Android
+      const backHandler = BackHandler.addEventListener("hardwareBackPress", () => {
+        if (drawerRef.current && drawerRef.current.state.drawerShown) {
+          drawerRef.current.closeDrawer()
+          return true // Prevenir el comportamiento por defecto
+        }
+        return false
+      })
+
+      return () => {
+        isFocused.current = false
+        backHandler.remove()
+        // Desmontar el drawer cuando la pantalla pierde el foco
+        if (Platform.OS === "android") {
+          setIsDrawerMounted(false)
+        }
+      }
+    }, []),
+  )
+
+  const refreshData = async () => {
+    setRefreshing(true)
+    await fetchUserData()
+    setRefreshing(false)
+  }
+
+  const fetchUserData = async () => {
+    try {
+      const token = await AsyncStorage.getItem("token")
+      if (!token) {
+        throw new Error("No hay token disponible")
+      }
+
+      // Obtener datos del usuario
+      const { data: user } = await api.get("/usuarios/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      setUserData(user)
+
+      // Obtener puntos
+      setLoadingPoints(true)
+      const { data: balance } = await api.get(`/puntos/balance/${user.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      setPoints(balance.total_puntos)
+    } catch (error) {
+      console.error("Error al obtener datos:", error)
+    } finally {
+      setLoadingUser(false)
+      setLoadingPoints(false)
+    }
+  }
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const token = await AsyncStorage.getItem('token');
-        if (!token) {
-          Alert.alert('Error', 'No hay token disponible');
-          return;
-        }
-        const { data } = await api.get('/usuarios/me', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setUserData(data);
-      } catch (error) {
-        console.error('Error al obtener los datos del usuario:', error);
-        const mensaje =
-          error.response?.data?.message ||
-          'Hubo un problema al obtener los datos del usuario';
-        Alert.alert('Error', mensaje);
-      } finally {
-        setLoading(false);
+    fetchUserData()
+
+    // Inicializar el estado del drawer
+    if (Platform.OS === "android") {
+      setIsDrawerMounted(true)
+    }
+
+    return () => {
+      if (Platform.OS === "android") {
+        setIsDrawerMounted(false)
       }
-    };
+    }
+  }, [])
 
-    fetchUserData();
-  }, []);
+  // Cambiar la pestaña activa
+  const changeTab = (tab) => {
+    setActiveTab(tab)
+  }
 
-  if (loading) {
-    return (
-      <View style={{ flex:1, justifyContent:'center', alignItems:'center' }}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
+  // Abrir el drawer
+  const openDrawer = () => {
+    if (drawerRef.current) {
+      drawerRef.current.openDrawer()
+    }
+  }
+
+  // Cerrar sesión
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem("token")
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Login" }],
+      })
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error)
+    }
+  }
+
+  if (loadingUser) {
+    return <LoadingScreen />
   }
 
   if (!userData) {
-    return (
-      <View style={{ padding: 20 }}>
-        <Text>No se pudo cargar la información del usuario.</Text>
-      </View>
-    );
+    return <ErrorScreen onRetry={() => setLoadingUser(true)} />
   }
 
-  //Administradores
-  if (userData.rol === 'admin') {
-    return (
-      <View style={{ padding: 20 }}>
-        <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 16 }}>
-          Panel de Administrador
-        </Text>
-        <Button
-          title="Crear Nuevo Reto"
-          onPress={() => navigation.navigate('CrearReto')}
-        />
-  <View style={{ height: 12 }} />
-        <Button
-          title="Actualizar reto"
-          onPress={() => navigation.navigate('ActualizarReto')}
-        />
+  // Renderizar el contenido principal
+  const renderContent = () => (
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#121212" />
 
-        <View style={{ height: 12 }} />
-        <Button
-          title="Revisar Vídeos de Usuarios"
-          onPress={() => navigation.navigate('CheckVideo')}
-        />
-      </View>
-    );
+      <HomeHeader userData={userData} points={points} loadingPoints={loadingPoints} onMenuPress={openDrawer} />
+
+      {userData.rol !== "admin" && <TabNavigator activeTab={activeTab} onChangeTab={changeTab} />}
+
+      {userData.rol === "admin" ? (
+        <AdminContent userData={userData} navigation={navigation} refreshing={refreshing} onRefresh={refreshData} />
+      ) : activeTab === "home" ? (
+        <HomeContent userData={userData} navigation={navigation} refreshing={refreshing} onRefresh={refreshData} />
+      ) : (
+        <TiendaContent userData={userData} points={points} refreshing={refreshing} onRefresh={refreshData} />
+      )}
+    </SafeAreaView>
+  )
+
+  // En Android, usar DrawerLayoutAndroid
+  if (Platform.OS === "android") {
+    // Importante: Solo renderizar el drawer cuando isDrawerMounted es true
+    if (!isDrawerMounted) {
+      return renderContent()
+    }
+
+    return (
+      <DrawerLayoutAndroid
+        ref={drawerRef}
+        drawerWidth={280}
+        drawerPosition="left"
+        renderNavigationView={() => (
+          <DrawerMenu
+            userData={userData}
+            points={points}
+            onProfilePress={() => {
+              if (drawerRef.current) {
+                drawerRef.current.closeDrawer()
+              }
+              navigation.navigate("Perfil", { userId: userData?.id })
+            }}
+            onLogoutPress={handleLogout}
+          />
+        )}
+      >
+        {renderContent()}
+      </DrawerLayoutAndroid>
+    )
   }
 
-  //Usuarios
-  return (
-    <View style={{ padding: 20 }}>
-      <Text style={{ fontSize: 18, marginBottom: 20 }}>
-        Bienvenido, {userData.nombre}
-      </Text>
-      <Button
-        title="Ir al Chat"
-        onPress={() =>
-          navigation.navigate('Chat', {
-            communityId: userData.comunidad_id,
-            userName: userData.nombre,
-            communityName: userData.comunidad_nombre,
-          })
-        }
-      />
-      
-        <Button
-        title="Retos"
-        onPress={() =>
-          navigation.navigate('Retos', {
-            communityId: userData.comunidad_id,
-            userName: userData.nombre,
-            communityName: userData.comunidad_nombre,
-          })
-        }
-      />
-      {}
-    </View>
-  );
-};
+  // En iOS, implementar un drawer personalizado (simplificado)
+  return renderContent()
+}
 
-export default Home;
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#121212",
+  },
+})
+
+export default Home
