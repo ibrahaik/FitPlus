@@ -175,10 +175,7 @@ const VideosUpload = () => {
           <Text style={styles.headerTitle}>Completar Reto</Text>
           <Text style={styles.headerSubtitle}>{retoNombre}</Text>
         </View>
-        
-        <View style={styles.logoPlaceholder}>
-          {}
-        </View>
+   
       </View>
       
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -331,10 +328,14 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
+    marginRight: 100,
+
   },
   headerSubtitle: {
     color: '#FFD700',
     fontSize: 12,
+    marginRight: 100,
+
   },
   logoPlaceholder: {
     width: 32,

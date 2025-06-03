@@ -98,7 +98,7 @@ const AdminContent = ({ userData, navigation, refreshing, onRefresh }) => {
             style={styles.adminButtonGradient}
           >
             <Ionicons name="videocam-outline" size={32} color="#FFD700" />
-            <Text style={styles.adminButtonText}>Revisar Vídeos</Text>
+            <Text style={styles.adminButtonText}>Gestionar Vídeos</Text>
           </LinearGradient>
         </TouchableOpacity>
 
@@ -111,13 +111,29 @@ const AdminContent = ({ userData, navigation, refreshing, onRefresh }) => {
             style={styles.adminButtonGradient}
           >
             <Ionicons name="create-outline" size={32} color="#FFD700" />
-            <Text style={styles.adminButtonText}>Publicar Post</Text>
+            <Text style={styles.adminButtonText}>Crear Post</Text>
           </LinearGradient>
+
+          
         </TouchableOpacity>
 
-       </View>
 
-       <TouchableOpacity
+        <TouchableOpacity
+          style={styles.adminButton}
+          onPress={() => navigation.navigate('GestionarPosts', { user_id: userData.id })}
+        >
+          <LinearGradient
+            colors={['#333333', '#222222']}
+            style={styles.adminButtonGradient}
+          >
+            <Ionicons name="create-outline" size={32} color="#FFD700" />
+            <Text style={styles.adminButtonText}>Gestionar Post</Text>
+          </LinearGradient>
+
+          
+        </TouchableOpacity>
+
+        <TouchableOpacity
           style={styles.adminButton}
           onPress={() => navigation.navigate('CreateProduct', { user_id: userData.id })}
         >
@@ -126,9 +142,25 @@ const AdminContent = ({ userData, navigation, refreshing, onRefresh }) => {
             style={styles.adminButtonGradient}
           >
             <Ionicons name="create-outline" size={32} color="#FFD700" />
-            <Text style={styles.adminButtonText}>Publicar Producto</Text>
+            <Text style={styles.adminButtonText}>Crear Producto</Text>
           </LinearGradient>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.adminButton}
+          onPress={() => navigation.navigate('GestionarProductos', { user_id: userData.id })}
+        >
+          <LinearGradient
+            colors={['#333333', '#222222']}
+            style={styles.adminButtonGradient}
+          >
+            <Ionicons name="create-outline" size={32} color="#FFD700" />
+            <Text style={styles.adminButtonText}>Gestionar Producto</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+       </View>
+
+      
         
       <View style={styles.adminStatsContainer}>
         <Text style={styles.adminStatsTitle}>Estadísticas</Text>

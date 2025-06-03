@@ -9,7 +9,8 @@ import {
   Platform, 
   Alert,
   SafeAreaView,
-  StatusBar
+  StatusBar,
+  Image
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons'; 
@@ -47,11 +48,13 @@ const Login = ({ navigation }) => {
         <View style={styles.content}>
           {}
           <View style={styles.logoContainer}>
-            <View style={styles.logoPlaceholder}>
-              {}
-            </View>
-            <Text style={styles.appTitle}>BANANA FIT</Text>
-            <Text style={styles.appSlogan}>Entrena como un campeón</Text>
+          <Image
+            source={require('../assets/logo.png')}
+            style={styles.logoImage}
+            resizeMode='contain'
+            />
+            <Text style={styles.appTitle}>GOLDEN BULK</Text>
+            <Text style={styles.appSlogan}>Sin excusas</Text>
           </View>
 
           <View style={styles.formContainer}>
@@ -120,6 +123,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#121212',
   },
+  logoImage: {
+    width: 250,
+    height: 250,
+    marginBottom: 15,
+  
+  },  
   keyboardAvoidView: {
     flex: 1,
   },

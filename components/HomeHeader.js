@@ -12,12 +12,13 @@ const HomeHeader = ({ userData, points, loadingPoints, onMenuPress }) => {
         <Ionicons name="menu" size={24} color="#FFD700" />
       </TouchableOpacity>
       
-      <View>
-        <Text style={styles.headerTitle}>BANANA FIT</Text>
+      <View style={styles.textContainer}>
+        <Text style={styles.headerTitle}>GOLDEN BULK</Text>
         <Text style={styles.headerSubtitle}>
           {userData.rol === 'admin' ? 'Panel de Administración' : userData.comunidad_nombre}
         </Text>
-      </View>
+        </View>
+
       
       <View style={styles.pointsBadge}>
         {loadingPoints ? (
@@ -39,6 +40,16 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1, 
     borderBottomColor: '#333' 
   },
+  leftSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  
+  textContainer: {
+    marginLeft: 10,
+  },
+  
   menuButton: {
     padding: 8,
   },

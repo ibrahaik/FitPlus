@@ -24,10 +24,45 @@ const RetosComunidad = () => {
   const navigation = useNavigation();
   const [userData, setUserData] = useState(null);
   const [retos, setRetos] = useState([]);
+  const [retosEstados, setRetosEstados] = useState({}); // Nuevo estado para almacenar los estados
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('activos'); 
   
   const tabIndicatorPosition = useRef(new Animated.Value(0)).current;
+
+  // Función para obtener el estado de un reto específico
+  const fetchEstadoReto = async (retoId, usuarioId) => {
+    try {
+      const response = await api.get(`/videos/estado/${retoId}/${usuarioId}`);
+      return response.data.estado;
+    } catch (error) {
+      // Si no encuentra el reto (404), significa que no ha subido video
+      if (error.response && error.response.status === 404) {
+        return null;
+      }
+      console.error('Error al obtener estado del reto:', error);
+      return null;
+    }
+  };
+
+  // Función para obtener todos los estados de los retos
+  const fetchAllRetosEstados = async (retos, usuarioId) => {
+    const estados = {};
+    
+    // Usar Promise.all para hacer todas las llamadas en paralelo
+    const promises = retos.map(async (reto) => {
+      const estado = await fetchEstadoReto(reto.id, usuarioId);
+      return { retoId: reto.id, estado };
+    });
+
+    const resultados = await Promise.all(promises);
+    
+    resultados.forEach(({ retoId, estado }) => {
+      estados[retoId] = estado;
+    });
+
+    return estados;
+  };
 
   useEffect(() => {
     const fetchRetosComunidad = async () => {
@@ -51,6 +86,11 @@ const RetosComunidad = () => {
           (reto) => reto.comunidad_id === usuario.comunidad_id
         );
         setRetos(retosFiltrados);
+
+        // Obtener los estados de todos los retos
+        const estados = await fetchAllRetosEstados(retosFiltrados, usuario.id);
+        setRetosEstados(estados);
+
       } catch (error) {
         console.error('Error:', error);
         Alert.alert('Error', 'No se pudieron cargar los retos');
@@ -84,8 +124,6 @@ const RetosComunidad = () => {
     return new Date(dateString).toLocaleDateString('es-ES', options);
   };
 
-
-
   const getRetoColor = (puntos) => {
     if (puntos >= 100) return ['#FFD700', '#FFA000']; 
     if (puntos >= 50) return ['#C0C0C0', '#A0A0A0']; 
@@ -116,6 +154,49 @@ const RetosComunidad = () => {
         isUrgent: false,
         isPast: true
       };
+    }
+  };
+
+  // Función para obtener el texto y estilo del botón según el estado
+  const getButtonInfo = (estado) => {
+    if (!estado) {
+      return {
+        text: 'Completar reto',
+        icon: 'chevron-forward',
+        colors: ['rgba(255, 215, 0, 0.1)', 'rgba(255, 215, 0, 0.1)'],
+        textColor: '#FFD700'
+      };
+    }
+
+    switch (estado) {
+      case 'pendiente':
+        return {
+          text: 'Ver estado',
+          icon: 'time-outline',
+          colors: ['rgba(255, 204, 0, 0.1)', 'rgba(255, 160, 0, 0.1)'],
+          textColor: '#FFCC00'
+        };
+      case 'aprobado':
+        return {
+          text: 'Ver estado',
+          icon: 'checkmark-circle-outline',
+          colors: ['rgba(76, 217, 100, 0.1)', 'rgba(46, 204, 113, 0.1)'],
+          textColor: '#4CD964'
+        };
+      case 'suspendido':
+        return {
+          text: 'Ver estado',
+          icon: 'close-circle-outline',
+          colors: ['rgba(255, 59, 48, 0.1)', 'rgba(231, 76, 60, 0.1)'],
+          textColor: '#FF3B30'
+        };
+      default:
+        return {
+          text: 'Completar reto',
+          icon: 'chevron-forward',
+          colors: ['rgba(255, 215, 0, 0.1)', 'rgba(255, 215, 0, 0.1)'],
+          textColor: '#FFD700'
+        };
     }
   };
 
@@ -159,9 +240,6 @@ const RetosComunidad = () => {
         <View style={styles.headerTitleContainer}>
           <Text style={styles.headerTitle}>Retos de Fitness</Text>
           <Text style={styles.headerSubtitle}>{userData.comunidad_nombre}</Text>
-        </View>
-        <View style={styles.logoPlaceholder}>
-          {/* Aquí irá tu logo */}
         </View>
       </View>
       
@@ -235,6 +313,8 @@ const RetosComunidad = () => {
             <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
               {retosActivos.map((reto, index) => {
                 const daysInfo = getDaysInfo(reto.fecha_fin);
+                const estadoReto = retosEstados[reto.id];
+                const buttonInfo = getButtonInfo(estadoReto);
                 
                 return (
                   <TouchableOpacity 
@@ -257,8 +337,6 @@ const RetosComunidad = () => {
                       style={styles.card}
                     >
                       <View style={styles.cardHeader}>
-                      
-
                         <View style={styles.cardTitleContainer}>
                           <Text style={styles.cardTitle}>{reto.nombre}</Text>
                           <View style={styles.pointsContainer}>
@@ -304,9 +382,21 @@ const RetosComunidad = () => {
                         </Text>
                       </View>
                       
-                      <View style={styles.cardFooter}>
-                        <Text style={styles.completarText}>Completar reto</Text>
-                        <Ionicons name="chevron-forward" size={20} color="#FFD700" />
+                      {/* Mostrar badge de estado si existe */}
+                      {estadoReto && (
+                        <View style={[styles.estadoBadge, { backgroundColor: buttonInfo.colors[0] }]}>
+                          <Ionicons name={buttonInfo.icon} size={16} color={buttonInfo.textColor} />
+                          <Text style={[styles.estadoBadgeText, { color: buttonInfo.textColor }]}>
+                            {estadoReto.charAt(0).toUpperCase() + estadoReto.slice(1)}
+                          </Text>
+                        </View>
+                      )}
+                      
+                      <View style={[styles.cardFooter, { backgroundColor: buttonInfo.colors[0] }]}>
+                        <Text style={[styles.completarText, { color: buttonInfo.textColor }]}>
+                          {buttonInfo.text}
+                        </Text>
+                        <Ionicons name={buttonInfo.icon} size={20} color={buttonInfo.textColor} />
                       </View>
                     </LinearGradient>
                   </TouchableOpacity>
@@ -338,7 +428,6 @@ const RetosComunidad = () => {
                       style={[styles.card, styles.vencidoCard]}
                     >
                       <View style={styles.cardHeader}>
-                      
                         <View style={styles.cardTitleContainer}>
                           <Text style={[styles.cardTitle, styles.vencidoTitle]}>{reto.nombre}</Text>
                           <View style={styles.pointsContainer}>
@@ -446,6 +535,7 @@ const styles = StyleSheet.create({
   },
   headerTitleContainer: {
     alignItems: 'center',
+    marginRight: 85,
   },
   headerTitle: {
     color: '#FFFFFF',
@@ -674,17 +764,30 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginLeft: 6,
   },
+  // Nuevos estilos para el badge de estado
+  estadoBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  estadoBadgeText: {
+    fontWeight: 'bold',
+    fontSize: 12,
+    marginLeft: 6,
+  },
   cardFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 215, 0, 0.1)',
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 8,
   },
   completarText: {
-    color: '#FFD700',
     fontWeight: 'bold',
   },
   vencidoBadge: {

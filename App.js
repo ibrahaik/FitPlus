@@ -2,6 +2,10 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
+import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+
+
 
 import Login from './screens/Login';
 import Register from './screens/Register';
@@ -17,11 +21,16 @@ import CreatePost from './screens/CreatePost';
 import CreateProduct from './screens/CreateProduct';
 import PasarelaScreen from './screens/Pasarela';
 import PerfilScreen from './screens/Perfil';
+import GestionarPosts from './screens/GestionarPosts';
+import GestionarProductos from './screens/GestionarProducto';
+
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
+    <SafeAreaProvider>
+      <StatusBar style="light" backgroundColor="#121212" translucent={false} />
     <NavigationContainer>
       <Stack.Navigator
         screenOptions={{
@@ -48,8 +57,11 @@ export default function App() {
         <Stack.Screen name="CreateProduct" component={CreateProduct} />
         <Stack.Screen name="Pasarela" component={PasarelaScreen} />
         <Stack.Screen name="Perfil" component={PerfilScreen} />
+        <Stack.Screen name="GestionarPosts" component={GestionarPosts} />
+        <Stack.Screen name="GestionarProductos" component={GestionarProductos} />
           </Stack.Navigator>
     </NavigationContainer>
+    </SafeAreaProvider>
   );
 }
 

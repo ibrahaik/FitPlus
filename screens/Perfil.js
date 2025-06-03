@@ -94,27 +94,22 @@ const PerfilScreen = ({ route, navigation }) => {
 
     try {
       const res = await api.get(`/compra/${userId}`)
-      console.log("Respuesta completa de compras:", res) // Debug completo
-      console.log("Data de compras:", res.data) // Debug específico
+      console.log("Respuesta completa de compras:", res) 
+      console.log("Data de compras:", res.data) 
 
-      // Verificar si hay datos
       if (res.data) {
-        // Si es un array, usarlo directamente
         if (Array.isArray(res.data)) {
           setCompras(res.data)
           console.log("Compras cargadas como array:", res.data)
         }
-        // Si es un objeto con propiedad 'compras'
         else if (res.data.compras && Array.isArray(res.data.compras)) {
           setCompras(res.data.compras)
           console.log("Compras cargadas desde res.data.compras:", res.data.compras)
         }
-        // Si es un objeto único, convertir a array
         else if (typeof res.data === "object" && res.data.compra_id) {
           setCompras([res.data])
           console.log("Compra única convertida a array:", [res.data])
         }
-        // Si no hay estructura reconocible
         else {
           console.log("Estructura de datos no reconocida:", res.data)
           setCompras([])
@@ -272,9 +267,7 @@ const PerfilScreen = ({ route, navigation }) => {
           <FontAwesome name="arrow-left" size={18} color="#FFD700" />
         </TouchableOpacity>
         <Text style={styles.titulo}>Mi Perfil</Text>
-        <TouchableOpacity style={styles.refreshButton} onPress={onRefresh}>
-          <FontAwesome name="refresh" size={16} color="#FFD700" />
-        </TouchableOpacity>
+    
       </View>
 
       <ScrollView
@@ -449,7 +442,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight + 15 : 15,
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight + 1 : 1,
     paddingBottom: 15,
     backgroundColor: "#1A1A1A",
   },
@@ -463,6 +456,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "600",
     color: "#FFFFFF",
+    marginRight: 132,
   },
   scrollContent: {
     paddingBottom: 30,
