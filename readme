@@ -1,120 +1,130 @@
 
-# 💪 Golden Bulk - Aplicación Fitness
+# 🧠 Golden Bulk - Backend
 
-**Golden Bulk** es una aplicación móvil de fitness desarrollada con **React Native + Expo** que promueve la actividad física mediante retos comunitarios, interacción social en tiempo real y una tienda virtual de recompensas. Es parte de una solución completa que incluye backend en Node.js y otras herramientas modernas.
-
----
-
-## 🧠 Funcionalidades principales
-
-- **Registro y Comunidad:**  
-  Al registrarse, el usuario elige una comunidad (representa una región de España) y accede directamente a:
-  - Un **chat global** en tiempo real con miembros de esa comunidad.
-  - Un **feed de publicaciones** de administradores (posts + vídeos).
-  - Interacciones sociales: comentarios y "me gusta".
-
-- **Retos Fitness:**  
-  - Los administradores publican retos que los usuarios pueden completar grabando un vídeo desde la cámara de la app.
-  - El vídeo es revisado por la administración.
-  - Si es aprobado, el usuario gana **puntos** que se suman a su balance.
-
-- **Tienda Virtual:**
-  - Los puntos obtenidos pueden canjearse por suplementos y productos deportivos.
-  - Compra y visualización de productos dentro de la app.
-
-- **Perfil de Usuario:**
-  - Edición de información personal.
-  - Visualización del saldo de puntos.
-
-- **Portal de Administración:**
-  - Publicar y actualizar retos.
-  - Aprobar vídeos enviados por usuarios.
-  - Crear y gestionar productos y publicaciones.
+Este es el backend de la aplicación de fitness **Golden Bulk**, desarrollado con **Node.js**, **Express** y **PostgreSQL**. Proporciona funcionalidades RESTful, autenticación JWT, integración con Firebase, manejo de puntos y retos fitness, y gestión de productos canjeables por los usuarios.
 
 ---
 
-## 📱 Tecnologías utilizadas
+## 🚀 Funcionalidades principales
 
-### 🧩 Frontend
-- [React Native](https://reactnative.dev/) + [Expo](https://expo.dev/)
-- React Navigation
-- Firebase Realtime Database (para el chat y presencia)
-- Cloudinary (gestión de imágenes y vídeos)
-- Camera & MediaLibrary (Expo plugins)
-- Ngrok (para exponer el backend local)
-- Axios (peticiones HTTP)
+- **Autenticación JWT**
+- **Registro y login de usuarios**
+- **Gestión de comunidades regionales**
+- **Retos fitness administrados**
+- **Subida y aprobación de vídeos**
+- **Sistema de puntos y tienda virtual**
+- **Panel de administración para retos, productos y vídeos**
 
-### 🛠️ Backend (requiere proyecto complementario)
+---
+
+## ⚙️ Tecnologías utilizadas
+
 - Node.js + Express
 - PostgreSQL
-- JWT para autenticación
+- JWT (jsonwebtoken)
+- Firebase (frontend complementario)
+- Cloudinary (almacenamiento de medios, vía frontend)
+- Ngrok (para pruebas locales)
+- CORS, Body-parser, Bcrypt
 
 ---
 
-## 📂 Estructura del Proyecto (Frontend)
+## 📁 Estructura del Proyecto
 
 ```
-ibrahaik-golden_bulk_frontend/
-├── App.js
-├── screens/
-│   ├── Login.js, Register.js, Home.js, Chat.js...
-│   ├── CrearReto.js, ActualizarReto.js
-│   ├── Perfil.js, Retos.js, VideosUpload.js
-│   └── Pasarela.js
-├── components/
-│   ├── HomeHeader.js, HomeContent.js
-│   ├── AdminContent.js, TiendaContent.js
-│   └── TabNavigator.js, DrawerMenu.js
-├── firebase.js
-├── api.js (config axios + ngrok)
-├── package.json
-└── app.json
+ibrahaik-golden_bulk_backend/
+├── server.js
+├── socket.js
+├── config/
+│   └── db.js
+├── controllers/
+│   ├── usuarioController.js
+│   ├── comunidadController.js
+│   ├── retoController.js
+│   ├── videoController.js
+│   ├── puntoController.js
+│   ├── postsController.js
+│   ├── likesController.js
+│   ├── commentsController.js
+│   ├── productoController.js
+│   └── compraController.js
+├── routes/
+│   ├── usuarioRoutes.js
+│   ├── comunidadRoutes.js
+│   ├── retoRoutes.js
+│   ├── videoRoutes.js
+│   ├── puntoRoutes.js
+│   ├── postsRoutes.js
+│   ├── likesRoutes.js
+│   ├── commentsRoutes.js
+│   ├── productosRoutes.js
+│   ├── compraRoutes.js
+│   └── informacionRoutes.js
+├── middlewares/
+│   └── auth.js
+└── package.json
 ```
 
 ---
 
-## 🔧 Instalación local
+## 🔧 Instalación y ejecución
 
-1. Clonar el repositorio del frontend:
+1. Clona el repositorio y navega al proyecto:
 
 ```bash
 git clone <URL_DEL_REPOSITORIO>
-cd ibrahaik-golden_bulk_frontend
+cd ibrahaik-golden_bulk_backend
 ```
 
-2. Instalar dependencias:
+2. Instala las dependencias:
 
 ```bash
 npm install
 ```
 
-3. Iniciar la app:
+3. Configura la conexión a PostgreSQL en `config/db.js`:
+
+```js
+const client = new Client({
+  user: 'postgres',
+  host: 'localhost',
+  database: 'fitplus',
+  password: 'usuario',
+  port: 5432,
+});
+```
+
+4. Inicia el servidor:
 
 ```bash
-npm start
+node server.js
 ```
-
-4. Escanea el código QR con Expo Go (iOS/Android) o lanza el emulador.
 
 ---
 
-## 🔐 Requisitos
+## 🌐 Endpoints disponibles
 
-- Tener corriendo el **backend** (Express + PostgreSQL).
-- Configurar tu endpoint `ngrok` en `api.js`:
-```js
-const API_BASE = 'https://<tu-ngrok-url>.ngrok-free.app';
-```
+Todos los endpoints base siguen el prefijo correspondiente:
 
-- Configurar Firebase (`firebase.js`) con tus credenciales.
+- `/usuarios`: registro, login, info actual
+- `/comunidades`: CRUD de comunidades
+- `/retos`: CRUD de retos
+- `/videos`: subida, revisión y estado de retos en vídeo
+- `/posts`, `/likes`, `/comments`: gestión de publicaciones
+- `/productos`, `/compra`: tienda virtual
+- `/puntos`: puntos acumulados y balance
+- `/informacion`: dirección/envío de usuario
 
 ---
 
-## 📌 Estado del Proyecto
+## 🔒 Seguridad
 
-✅ Completado y funcional para pruebas y demostraciones.  
-🔒 Autenticación con JWT integrada.  
-🌍 Comunicación global por comunidades usando Firebase.
+- Autenticación por token JWT
+- Middleware de autorización (`auth.js`)
+- Contraseñas encriptadas con Bcrypt
+- Rutas protegidas para datos sensibles
+
+---
 
 
 Desarrollado por Ibrahim Haik
